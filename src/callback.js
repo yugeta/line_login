@@ -19,6 +19,7 @@ export class Callback{
     this.queries  = new Urlinfo().queries || {}
     const token   = await this.#access_token(setting, this.#code)
     const profile = await this.#get_profile(token)
+    new DataStorage().clear()
     console.log("Profile", profile)
   }
 
