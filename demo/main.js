@@ -1,18 +1,16 @@
-import { Setting }    from "../src/setting.js";
-import { GetCode }    from "../src/get_code.js";
-import { ViewButton } from "../src/view_button.js";
-import { Urlinfo }    from "../src/urlinfo.js";
-import { Callback }   from "../src/callback.js";
+import { Setting }   from "../src/setting.js";
+import { LineLogin } from "../src/line_login.js";
+import { Urlinfo }   from "../src/urlinfo.js";
+import { Callback }  from "../src/callback.js";
 
 class Main{
-  constructor(){
+  constructor(){console.log(this.page_type)
     switch(this.page_type){
       case "callback":
-        new Callback().promise.then(this.profile.bind(this))
+        new Callback();
         break
       default:
-        new ViewButton()
-        this.init()
+      this.init()
     }
   }
 
@@ -27,17 +25,8 @@ class Main{
 
   async init(){
     new Setting("setting.json").promise.then(setting_data => {
-      new GetCode(setting_data)
+      new LineLogin(setting_data)
     })
-  }
-
-  // Profileデータの取得後の処理
-  get profile_area(){
-    return document.querySelector(`.parsonal`)
-  }
-  profile(datas){
-    console.log(datas)
-    this.profile_area.textContent = JSON.stringify(datas, null, "  ")
   }
 }
 
