@@ -1,0 +1,6 @@
+{
+  "ver" : "2.1",
+  "client_id" : "YOUR CLIENT ID",
+  "channel_secret" : "YOUR CHANNEL SECRET",
+  "callback_url" : "http://example.com/callback.html"
+}
