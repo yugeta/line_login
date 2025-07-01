@@ -1,6 +1,0 @@
-{
-  "ver" : "2.1",
-  "client_id" : "2007660906",
-  "channel_secret" : "8d09127c4b280560dcf70bdc1d80117a",
-  "callback_url" : "http://localhost:8888/tools/line_login/demo/callback.html"
-}
