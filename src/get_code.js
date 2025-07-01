@@ -2,7 +2,7 @@ import { ViewButton } from "./view_button.js";
 import { Uuid }       from "./uuid.js";
 
 
-export class LineLogin{
+export class GetCode{
   constructor(options){
     const button = new ViewButton().button
     if(button){

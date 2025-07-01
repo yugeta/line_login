@@ -1,60 +1,76 @@
 import { Urlinfo }     from "../src/urlinfo.js";
 import { DataStorage } from "../src/data_storage.js";
+import { GetToken }    from "../src/get_token.js";
+import { GetProfile }  from "../src/get_profile.js";
+import { GetVerify }   from "../src/get_verify.js";
 
 export class Callback{
-  constructor(){
-    console.log(new Urlinfo().queries)
-    this.#init()
-  }
-
-  #url = "https://api.line.me/oauth2/v2.1/token"
+  #resolve
+  #reject
+  #token_data
+  #profile_data = {}
+  #verify_data  = {}
 
   get #code(){
     const queries  = new Urlinfo().queries || {}
     return queries.code
   }
 
-  async #init(){
-    const setting = new DataStorage().load()
-    this.queries  = new Urlinfo().queries || {}
-    const token   = await this.#access_token(setting, this.#code)
-    const profile = await this.#get_profile(token)
-    new DataStorage().clear()
-    console.log("Profile", profile)
+  get #setting(){
+    return new DataStorage().load()
   }
 
-  async #access_token(setting){
-    const formData = {
-      grant_type    : "authorization_code",
-      code          : this.#code,
-      client_id     : setting.client_id,
-      client_secret : setting.channel_secret,
-      redirect_uri  : setting.callback_url,
-    }
-
-    const tokenData = await fetch(this.#url, {
-      method: 'POST',
-      headers: {"Content-Type": "application/x-www-form-urlencoded"},
-      body: new URLSearchParams(formData),
-    })
-    .then((res)=>{return res.json()})
-    if (tokenData.access_token) {
-      // console.log("アクセストークン", tokenData)
-      return tokenData
-    }
-    else{
-      console.error("アクセストークン取得失敗", tokenData)
-    }
-  }
-
-  async #get_profile(token){
-    // ユーザープロフィール取得
-    const profileRes = await fetch("https://api.line.me/v2/profile", {
-      headers: {
-        "Authorization": `Bearer ${token.access_token}`
+  
+  constructor(){
+    this.promise = new Promise((resolve, reject) => {
+      this.#resolve = resolve
+      this.#reject  = reject
+      
+      if(this.#code){
+        this.#init()
+      }
+      else{
+        console.error("認証コードがありません")
+        this.#reject("認証コードがありません")
       }
     })
-    return await profileRes.json()
   }
 
+  #init(){
+    this.#access_token()
+  }
+
+  #access_token(){
+    new GetToken(this.#code, this.#setting)
+    .promise.then( token_data => {
+      this.#token_data = token_data || {}
+      this.#get_profile(token_data)
+    })
+  }
+
+  #get_profile(){
+    new GetProfile(this.#token_data.access_token)
+    .promise.then( profile_data => {
+      this.#profile_data = profile_data || {}
+      this.#get_verify()
+    })
+  }
+
+  #get_verify(){
+    new GetVerify(this.#token_data.id_token, this.#setting.client_id)
+    .promise.then( verify_data => {
+      this.#verify_data = verify_data || {}
+      this.#loaded()
+    })
+  }
+
+  #loaded(){
+    const datas = {...this.#profile_data, ...this.#verify_data}
+    new DataStorage().clear()
+    this.#finish(datas)
+  }
+
+  #finish(data){
+    this.#resolve(data)
+  }
 }
